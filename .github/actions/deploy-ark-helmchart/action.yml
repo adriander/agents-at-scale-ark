@@ -54,10 +54,14 @@ inputs:
     description: "Whether to apply ARK CRDs from repo (true/false)"
     required: false
     default: "true"
-  install_ingress:
+  install_loadbalancer:
     description: "Whether to install nginx ingress controller and setup ARK ingress (true/false)"
     required: false
     default: "true"
+  load_balancer_annotations:
+    description: "Additional annotations for the LoadBalancer service (e.g. load-balancer-scheme)"
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -195,6 +199,7 @@ runs:
             --namespace ingress-nginx \
             --create-namespace \
             --set controller.service.type=LoadBalancer \
+            $( [ -n "${{ inputs.load_balancer_annotations }}" ] && echo "--set controller.service.annotations={${{ inputs.load_balancer_annotations }}}" ) \
             --wait
         
         # Wait for external IP

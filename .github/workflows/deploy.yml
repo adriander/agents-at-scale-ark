@@ -172,7 +172,7 @@ jobs:
           install_cert_manager: "false"
           install_gateway_api: "false"
           apply_crds: "false"
-          install_ingress: "false"
+          install_loadbalancer: "false"
         env:
           GH_TOKEN: ${{ github.token }}
 
