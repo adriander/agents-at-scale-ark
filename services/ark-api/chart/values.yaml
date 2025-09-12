@@ -51,3 +51,5 @@ gateway:
 serviceAccount:
   name: ark-api-sa
   create: true
+  rbac:
+    singleNamespace: false
