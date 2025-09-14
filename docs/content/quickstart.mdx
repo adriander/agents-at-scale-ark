@@ -72,3 +72,125 @@ npm install -g @dwmkerr/ark
 # Run install
 ark install
 ```
+
+## Windows Installation Troubleshooting
+
+Many Windows installation issues stem from enterprise security policies and restricted environments. Here's a detailed troubleshooting guide based on real-world enterprise deployments.
+
+### Why Installation Can Be Complex on Corporate Windows
+
+Enterprise Windows environments typically have:
+- **Virtualization disabled** - Hyper-V is often disabled by policy for security reasons
+- **Restricted user permissions** - Standard users cannot modify system settings
+- **Network restrictions** - Corporate VPNs and proxies can block container registries
+- **Security software** - Endpoint protection may flag container operations as suspicious
+
+### Common Issues and Solutions
+
+#### 1. Node.js Installation Hangs
+**Problem**: Post-install PowerShell scripts may hang indefinitely.  
+**Solution**: If npm is accessible after installation, you can proceed despite the hanging script.
+
+#### 2. Missing Dependencies
+**Problem**: `ark status` shows missing kubectl, helm, docker, minikube, kind.  
+**Solution**: Use Chocolatey package manager for seamless installation:
+```powershell
+# Install Chocolatey first (requires PowerShell as Administrator)
+Set-ExecutionPolicy Bypass -Scope Process -Force
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+# Install dependencies (may take 40-60 minutes)
+choco install minikube  # Also installs kubectl
+choco install helm
+choco install docker
+choco install kind
+```
+
+#### 3. Hyper-V Not Available
+**Problem**: Minikube fails with "Hyper-V PowerShell Module is not available".  
+**Solution**: 
+1. Enable Hyper-V (requires restart):
+   ```powershell
+   Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-Tools-All -All
+   ```
+2. If the error persists after restart, check if your organization has a specific tool or process for enabling Hyper-V
+3. May require BIOS-level virtualization to be enabled
+
+#### 4. Minikube "IP not found" Errors
+**Problem**: Minikube start fails with IP allocation issues.  
+**Solution**:
+1. Update WSL:
+   ```powershell
+   wsl --update
+   ```
+2. Delete and recreate the minikube cluster:
+   ```powershell
+   minikube delete
+   minikube start
+   ```
+3. If using Docker Desktop, ensure it's running with proper permissions
+
+#### 5. Security Software Blocking Operations
+**Problem**: Corporate security tools block Docker or container operations.  
+**Solution**:
+- Run PowerShell as Power User or Administrator
+- Work with your IT department to whitelist Docker and Kubernetes processes
+- Some organizations require specific VPN endpoints (switching VPN regions sometimes helps)
+
+#### 6. Docker Desktop Issues
+**Problem**: Docker Desktop shows as stopped or requires WSL updates.  
+**Solution**:
+1. Ensure Docker Desktop is started from an elevated console:
+   ```powershell
+   "C:\Program Files\Docker\Docker\Docker Desktop.exe"
+   ```
+2. Update WSL when prompted
+3. Enable Kubernetes in Docker Desktop settings as an alternative to Minikube
+
+### Step-by-Step Troubleshooting Process
+
+If you encounter issues, follow this sequence:
+
+1. **Check prerequisites**:
+   ```powershell
+   ark status  # Shows what's missing
+   ```
+
+2. **Install missing components** via Chocolatey (see above)
+
+3. **Enable virtualization**:
+   - Enable Hyper-V and restart
+   - Verify in Task Manager → Performance → CPU that "Virtualization" shows as "Enabled"
+
+4. **Clean slate for Minikube**:
+   ```powershell
+   minikube delete
+   minikube start
+   ```
+
+5. **Verify cluster access**:
+   ```powershell
+   kubectl get nodes
+   ```
+
+6. **Install ARK**:
+   ```powershell
+   ark install
+   ```
+
+### Expected Installation Time
+
+In restricted enterprise environments:
+- Initial dependency installation: 40-60 minutes
+- Hyper-V enablement and restarts: 20-30 minutes  
+- ARK installation: 10-20 minutes
+
+Total time: approximately 1.5-2 hours including troubleshooting
+
+### When to Consider Alternatives
+
+If local installation continues to fail after these steps, consider:
+- Using WSL2 with Linux (often bypasses Windows-specific issues)
+- Connecting to a remote Kubernetes cluster
+- Using a cloud-based development environment
