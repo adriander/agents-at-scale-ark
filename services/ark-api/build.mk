@@ -10,6 +10,7 @@ ARK_API_IMAGE := ark-api
 ARK_API_TAG ?= latest
 ARK_API_NAMESPACE ?= default
 CORS_ORIGINS ?= http://localhost:3000
+ARK_DETECT_NAMESPACE := $(or $(shell echo $$ARK_DETECT_NAMESPACE),false)
 
 # Pre-calculate all stamp paths
 ARK_API_STAMP_DEPS := $(ARK_API_OUT)/stamp-deps
@@ -106,6 +107,6 @@ $(ARK_API_SERVICE_NAME)-uninstall: # HELP: Remove ARK API server from cluster
 # Dev target
 $(ARK_API_SERVICE_NAME)-dev: $(ARK_API_STAMP_TEST) $(ARK_API_STAMP_DEPS) # HELP: Run ARK API server in development mode
 	cd $(ARK_API_SERVICE_SOURCE_DIR) && uv add $(ARK_SDK_WHL) && uv sync && \
-	CORS_ORIGINS=$(CORS_ORIGINS) uv run python -m uvicorn --host 0.0.0.0 --port 8000 --reload src.ark_api.main:app
+	CORS_ORIGINS=$(CORS_ORIGINS) ARK_DETECT_NAMESPACE=$(ARK_DETECT_NAMESPACE) uv run python -m uvicorn --host 0.0.0.0 --port 8000 --reload src.ark_api.main:app
 
 

@@ -82,6 +82,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/current-namespace": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Current Namespace Endpoint
+         * @description Get the current namespace detected from service account with mode information.
+         *
+         *     Returns:
+         *         CurrentNamespaceResponse: The current namespace and whether single-namespace mode is enabled
+         */
+        get: operations["get_current_namespace_endpoint_v1_current_namespace_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/namespaces/{namespace}/secrets": {
         parameters: {
             query?: never;
@@ -1607,6 +1630,16 @@ export interface components {
             prompt_tokens_details?: components["schemas"]["PromptTokensDetails"] | null;
         } & {
             [key: string]: unknown;
+        };
+        /**
+         * CurrentNamespaceResponse
+         * @description Response model for current namespace with mode information.
+         */
+        CurrentNamespaceResponse: {
+            /** Name */
+            name: string;
+            /** Single Namespace Mode */
+            single_namespace_mode: boolean;
         };
         /** Custom */
         Custom: {
@@ -3293,6 +3326,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_current_namespace_endpoint_v1_current_namespace_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrentNamespaceResponse"];
                 };
             };
         };

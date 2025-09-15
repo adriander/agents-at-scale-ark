@@ -17,6 +17,15 @@ export const namespacesService = {
         }))
     },
 
+    // Get current namespace detected by ark-api with mode information
+    async getCurrent(): Promise<{name: string, singleNamespaceMode: boolean}> {
+        const response = await apiClient.get<{name: string, single_namespace_mode: boolean}>('/api/v1/current-namespace')
+        return {
+            name: response.name,
+            singleNamespaceMode: response.single_namespace_mode
+        }
+    },
+
     // Create a new namespace
     async create(name: string): Promise<Namespace> {
         const request: NamespaceCreateRequest = { name }

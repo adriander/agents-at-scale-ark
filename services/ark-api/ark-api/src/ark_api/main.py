@@ -9,6 +9,7 @@ from kubernetes_asyncio import client
 
 from .api import router
 from .core.config import setup_logging
+from .core.namespace import detect_current_namespace, set_current_namespace
 from ark_sdk.k8s import init_k8s
 
 # Initialize logging
@@ -19,6 +20,11 @@ logger = setup_logging()
 async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting up ARK API...")
+    
+    # Detect the current namespace from service account
+    detected_namespace = detect_current_namespace()
+    set_current_namespace(detected_namespace)
+    
     await init_k8s()
     logger.info("Kubernetes clients initialized")
     yield
