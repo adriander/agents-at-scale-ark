@@ -8,6 +8,14 @@ inputs:
     description: "Image registry prefix (e.g. ghcr.io/org/repo). Action will append /ark-api, /ark-api-a2a, /ark-dashboard"
     required: false
     default: ""
+  install_loadbalancer:
+    description: "Whether to install nginx ingress controller and setup ARK ingress (true/false)"
+    required: false
+    default: "true"
+  load_balancer_annotations:
+    description: "Additional annotations for the LoadBalancer service (e.g. load-balancer-scheme)"
+    required: false
+    default: ""
   namespace:
     description: "Kubernetes namespace to deploy services into"
     required: false
@@ -27,6 +35,30 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Install ingresses
+      if: ${{ inputs.install_ingress == 'true' }}
+      shell: bash
+      run: |
+        echo "Setting up ingress and load balancer"
+        set -euo pipefail
+        # Install nginx ingress controller
+        echo "Installing nginx ingress controller..."
+        helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+        helm repo update
+        helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+            --namespace ingress-nginx \
+            --create-namespace \
+            --set controller.service.type=LoadBalancer \
+            $( [ -n "${{ inputs.load_balancer_annotations }}" ] && echo "--set controller.service.annotations={${{ inputs.load_balancer_annotations }}}" ) \
+            --wait
+        
+        # Wait for external IP
+        echo "Waiting for external IP assignment..."
+        kubectl wait --namespace ingress-nginx \
+            --for=condition=ready pod \
+            --selector=app.kubernetes.io/component=controller \
+            --timeout=300s
+
     - name: Deploy services
       shell: bash
       run: |

@@ -155,7 +155,7 @@ jobs:
           idp_issuer_url: ${{ secrets.DEPLOY_CLUSTER_IDP_ISSUER_URL }}
           kubectl_version: v1.28.0
 
-      - name: Deploy ARK Helm Chart
+      - name: Deploy ARK Controller Helm Chart
         uses: ./.github/actions/deploy-ark-helmchart
         with:
           version: ${{ needs.resolve_version.outputs.version }}
@@ -171,8 +171,6 @@ jobs:
           timeout: "5m"
           install_cert_manager: "false"
           install_gateway_api: "false"
-          apply_crds: "false"
-          install_loadbalancer: "false"
         env:
           GH_TOKEN: ${{ github.token }}
 
