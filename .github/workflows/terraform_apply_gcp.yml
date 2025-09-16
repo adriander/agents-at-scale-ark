@@ -6,7 +6,6 @@ on:
     paths:
         - 'infrastructure/gcp/**'
         - '.github/workflows/terraform-apply-gcp.yaml'
-  workflow_dispatch:
 
 permissions:
   id-token: write

@@ -6,7 +6,6 @@ on:
     paths:
         - 'infrastructure/aws/**'
         - '.github/workflows/terraform-apply-aws.yaml'
-  workflow_dispatch:
 
 permissions:
   id-token: write
