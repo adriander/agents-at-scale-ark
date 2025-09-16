@@ -14,7 +14,3 @@ data "aws_availability_zones" "available" {
     values = ["opt-in-not-required"]
   }
 }
-
-data "aws_iam_role" "github_oidc_role" {
-  name = var.github_oidc_role_name
-}
