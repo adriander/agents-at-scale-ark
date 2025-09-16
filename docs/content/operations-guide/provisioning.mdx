@@ -25,37 +25,31 @@ For more details, please, refer to [Disclaimer](./disclaimer.mdx).
 - fork-based - for long-term use and custom development
 
 ###Provision infrastructure locally:
-
-import { Tabs } from 'nextra/components'
- 
-<Tabs items={['AWS', 'GCP']}>
-  <Tabs.Tab>**AWS**
+####AWS:
+    ```
     - AWS CLI installed and configured: https://docs.aws.amazon.com/cli/
     - Terraform (recommended >= 1.0)
     - AWS credentials with permissions to create VPC, EKS, EC2, IAM, ELB, S3 (or an appropriately-scoped IAM role) 
-  </Tabs.Tab>
-  <Tabs.Tab>**GCP** 
+  ```
+####GCP:
+    ```
     - Google Cloud SDK (gcloud) installed and authenticated: https://cloud.google.com/sdk
     - Terraform (recommended >= 1.0)
     - Service account with roles such as Kubernetes Engine Admin, Compute Admin, Service Account User, Storage Admin (adjust per needs)
     - Service account key or ADC available to Terraform
-  </Tabs.Tab>
-</Tabs>
+  ```
 
 Once prerequisites are in place, navigate to the respective folder:
 
-<Tabs items={['AWS', 'GCP']}>
-  <Tabs.Tab>**AWS**
+####AWS:
   ```
   cd /infrastructure/providers/aws
   ```
-  </Tabs.Tab>
-  <Tabs.Tab>**GCP**
-    ```
+####GCP:
+  ```
     cd /infrastructure/providers/gcp
     ```
-  </Tabs.Tab>
-</Tabs>
+
 
 And perform 
 ```
@@ -66,12 +60,11 @@ terraform apply
 
 Overall provisioning can take up to 10 minutes.
 
-### Fork-based development
+### Fork-based provisioning and development:
 
 Configure GitHub OIDC for provisioning and deployment:
 
-<Tabs items={['AWS', 'GCP']}>
-  <Tabs.Tab>**AWS**
+####AWS:
   ```
 resource "aws_iam_role" "github_oidc_role" {
   name        = "github-oidc-role"
@@ -95,13 +88,10 @@ data "aws_iam_policy" "github_oidc_administrator_policy" {
   name = "AdministratorAccess" 
 }
 
-```
-
+``` 
 Example of the policy you can find in `infrastructure/samples/github_oidc_assume_role_policy.json` - Replace `ACCOUNT_ID`, `ORG`, `REPO`, `REF` with respective values, to further harden the policy, you can add filter for your github runners IPs or other organization-specific requirements.
-
-  </Tabs.Tab>
-  <Tabs.Tab>**GCP**
-    ```
+####GCP:
+  ```
 resource "google_service_account" "github_oidc_sa" {
   project    = var.gcp_project_id
   account_id = var.github_oidc_service_account
@@ -137,19 +127,15 @@ module "gcp_gh_oidc" {
 }
 
 ```
-
 Replace `ORG`, `REPO`,  with respective values, to further harden the policy, you can add filter for your github runners IPs or other organization-specific requirements.
-  </Tabs.Tab>
-</Tabs>
 
 Create S3 or GCS bucket in the same region
 
 Populate the following secrets and variable in the GitHub repo:
 
-<Tabs items={['AWS', 'GCP']}>
-  <Tabs.Tab>**AWS**
+####AWS:
   Secrets:
-    ```
+  ```
     AWS_GH_OIDC_ROLE_ARN
     AWS_TF_STATE_BUCKET
     AWS_TF_STATE_KEY (optional)
@@ -158,10 +144,9 @@ Populate the following secrets and variable in the GitHub repo:
     ```
     AWS_REGION
     ```
-  </Tabs.Tab>
-  <Tabs.Tab>**GCP**
-    Secrets:
-```
+####GCP:
+  Secrets:
+  ```
 GCP_PROJECT_ID
 GCP_WORKLOAD_IDENTITY_PROVIDER
 GCP_SA_EMAIL
@@ -171,8 +156,7 @@ Variables:
 ```
 GCP_REGION
 ```
-  </Tabs.Tab>
-</Tabs>
+
 
 - Run respective workflows:
     - for planning infrastructure: `terraform_plan_<CLOUD_PROVIDER>.yml`
