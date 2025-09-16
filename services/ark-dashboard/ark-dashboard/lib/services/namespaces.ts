@@ -17,13 +17,10 @@ export const namespacesService = {
         }))
     },
 
-    // Get current namespace detected by ark-api with mode information
-    async getCurrent(): Promise<{name: string, singleNamespaceMode: boolean}> {
-        const response = await apiClient.get<{name: string, single_namespace_mode: boolean}>('/api/v1/current-namespace')
-        return {
-            name: response.name,
-            singleNamespaceMode: response.single_namespace_mode
-        }
+    // Get current Kubernetes context
+    async getContext(): Promise<{namespace: string, cluster: string}> {
+        const response = await apiClient.get<{namespace: string, cluster: string}>('/api/v1/context')
+        return response
     },
 
     // Create a new namespace

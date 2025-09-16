@@ -20,10 +20,10 @@ class NamespaceCreateRequest(BaseModel):
     name: str
 
 
-class CurrentNamespaceResponse(BaseModel):
-    """Response model for current namespace with mode information."""
-    name: str
-    single_namespace_mode: bool
+class ContextResponse(BaseModel):
+    """Response model for current Kubernetes context."""
+    namespace: str
+    cluster: str
 
 
 class SecretResponse(BaseModel):

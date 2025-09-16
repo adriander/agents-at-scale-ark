@@ -14,12 +14,57 @@ NS_PATH = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
 
 @functools.lru_cache(maxsize=1)
 def get_namespace():
-    ns = 'default'
-    if is_k8s() and os.path.isfile(NS_PATH):
-        with open(NS_PATH) as f:
-            ns = f.read().strip()
-    logger.info(f"Using namespace {ns}")
-    return ns
+    """Get current namespace using standard Kubernetes patterns."""
+    context_info = get_context()
+    return context_info.get('namespace', 'default')
+
+@functools.lru_cache(maxsize=1) 
+def get_context():
+    """
+    Get current Kubernetes context information.
+    
+    Returns:
+        dict: Context information with 'namespace' and 'cluster' keys
+        
+    Follows standard k8s tool patterns:
+    1. Try /var/run/secrets/kubernetes.io/serviceaccount/namespace (in-cluster)
+    2. Fall back to ~/.kube/config context (dev mode)  
+    3. Fall back to 'default' namespace
+    """
+    namespace = 'default'
+    cluster = 'unknown'
+    
+    # First try: in-cluster service account (preferred when running in pods)
+    if os.path.isfile(NS_PATH):
+        try:
+            with open(NS_PATH) as f:
+                namespace = f.read().strip()
+            logger.info(f"Using in-cluster namespace: {namespace}")
+        except Exception as e:
+            logger.warning(f"Failed to read in-cluster namespace: {e}")
+    
+    # Second try: kubeconfig context (dev mode)
+    if namespace == 'default':
+        try:
+            _, active_context = config.list_kube_config_contexts()
+            if active_context and 'context' in active_context:
+                ctx = active_context['context']
+                if 'namespace' in ctx:
+                    namespace = ctx['namespace']
+                if 'cluster' in ctx:
+                    cluster = ctx['cluster']
+                logger.info(f"Using kubeconfig context namespace: {namespace}, cluster: {cluster}")
+        except Exception as e:
+            logger.warning(f"Failed to read kubeconfig context: {e}")
+    
+    # Final fallback
+    if namespace == 'default':
+        logger.info(f"Using fallback namespace: {namespace}")
+        
+    return {
+        'namespace': namespace,
+        'cluster': cluster
+    }
 
 @functools.lru_cache(maxsize=1)
 def is_k8s():
@@ -34,7 +79,7 @@ def _init_k8s():
         logger.info("Loaded kubeconfig from default location (probably dev mode)")
         
         # Log the current context for debugging
-        contexts, active_context = config.list_kube_config_contexts()
+        _, active_context = config.list_kube_config_contexts()
         if active_context:
             logger.info(f"Active context: {active_context['name']}")
             

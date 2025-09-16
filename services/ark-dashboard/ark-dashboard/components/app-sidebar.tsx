@@ -46,7 +46,6 @@ export function AppSidebar() {
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null)
   const [namespace, setNamespace] = useState("default")
   const [namespaceEditorOpen, setNamespaceEditorOpen] = useState(false)
-  const [singleNamespaceMode, setSingleNamespaceMode] = useState(false)
   const isPlaceholderSection = (key: string): boolean => {
     const placeholderKeys: string[] = []
     return placeholderKeys.includes(key)
@@ -69,56 +68,38 @@ export function AppSidebar() {
         setSystemInfo(systemData)
         setNamespaceResolved(true)
         
-        // Try to get current namespace and mode information
+        // Get current context and simplify namespace selection
         let selectedNamespace = "default"
-        let singleNamespaceMode = false
         
         try {
-          const currentNamespaceInfo = await namespacesService.getCurrent()
-          selectedNamespace = currentNamespaceInfo.name
-          singleNamespaceMode = currentNamespaceInfo.singleNamespaceMode
-          setSingleNamespaceMode(singleNamespaceMode)
-          
-          // If not in single namespace mode, check URL for namespace parameter
-          if (!singleNamespaceMode) {
-            const urlParams = new URLSearchParams(window.location.search)
-            const urlNamespace = urlParams.get('namespace')
-            if (urlNamespace && filteredNamespaces.some(ns => ns.name === urlNamespace)) {
-              selectedNamespace = urlNamespace
-            }
-          }
+          const context = await namespacesService.getContext()
+          selectedNamespace = context.namespace
         } catch (error) {
-          console.warn("Failed to get current namespace info, falling back to URL/default:", error)
+          console.warn("Failed to get current context, using fallback namespace:", error)
           // Check URL for namespace parameter as fallback
           const urlParams = new URLSearchParams(window.location.search)
           const urlNamespace = urlParams.get('namespace')
-          if (urlNamespace && filteredNamespaces.some(ns => ns.name === urlNamespace)) {
+          if (urlNamespace) {
             selectedNamespace = urlNamespace
           }
         }
         
-        // Determine which namespaces to show based on mode
-        let namespacesToShow = filteredNamespaces
+        // Always show only the current namespace (simplified approach)
+        let currentNamespaceOnly = filteredNamespaces.filter(ns => ns.name === selectedNamespace)
         
-        if (singleNamespaceMode) {
-          // Single namespace mode: show only the current namespace
-          let currentNamespaceOnly = filteredNamespaces.filter(ns => ns.name === selectedNamespace)
-          
-          // If the current namespace isn't in the filtered list, create it
-          if (currentNamespaceOnly.length === 0) {
-            currentNamespaceOnly = [{
-              name: selectedNamespace,
-              id: 0
-            }]
-          }
-          namespacesToShow = currentNamespaceOnly
+        // If the current namespace isn't in the filtered list, create it
+        if (currentNamespaceOnly.length === 0) {
+          currentNamespaceOnly = [{
+            name: selectedNamespace,
+            id: 0
+          }]
         }
-        // else: show all filtered namespaces (default behavior)
         
-        setNamespaces(namespacesToShow)
+        // Always show only the current namespace (simplified approach)
+        setNamespaces(currentNamespaceOnly)
         setNamespace(selectedNamespace)
         
-        // Update URL to reflect the selected namespace
+        // Update URL to reflect the detected namespace (set once on startup)
         const currentPath = pathname
         router.push(`${currentPath}?namespace=${selectedNamespace}`)
       } catch (error) {
@@ -148,18 +129,9 @@ export function AppSidebar() {
         description: `Successfully created namespace ${name}`
       })
       
-      if (singleNamespaceMode) {
-        // In single namespace mode, show only the newly created namespace
-        const newNamespace = { name, id: 0 }
-        setNamespaces([newNamespace])
-      } else {
-        // In multi-namespace mode, refresh the full list
-        const updatedNamespaces = await namespacesService.getAll()
-        const filteredNamespaces = updatedNamespaces.filter(ns => 
-          !['cert-manager', 'kube-node-lease', 'kube-system', 'kube-public'].includes(ns.name)
-        )
-        setNamespaces(filteredNamespaces)
-      }
+      // Always in single namespace mode, show only the newly created namespace
+      const newNamespace = { name, id: 0 }
+      setNamespaces([newNamespace])
       
       handleNamespaceSelect(name)
     } catch (error) {

@@ -105,6 +105,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Context Endpoint
+         * @description Get the current Kubernetes context information.
+         *
+         *     Returns context following standard k8s patterns:
+         *     1. In-cluster service account (when running in pods)
+         *     2. Kubeconfig context (when running locally)
+         *     3. Fallback to default
+         *
+         *     Returns:
+         *         ContextResponse: The current namespace and cluster information
+         */
+        get: operations["get_context_endpoint_v1_context_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/namespaces/{namespace}/secrets": {
         parameters: {
             query?: never;
@@ -1630,6 +1658,16 @@ export interface components {
             prompt_tokens_details?: components["schemas"]["PromptTokensDetails"] | null;
         } & {
             [key: string]: unknown;
+        };
+        /**
+         * ContextResponse
+         * @description Response model for current Kubernetes context.
+         */
+        ContextResponse: {
+            /** Namespace */
+            namespace: string;
+            /** Cluster */
+            cluster: string;
         };
         /**
          * CurrentNamespaceResponse
@@ -3346,6 +3384,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CurrentNamespaceResponse"];
+                };
+            };
+        };
+    };
+    get_context_endpoint_v1_context_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContextResponse"];
                 };
             };
         };

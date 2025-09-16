@@ -5,8 +5,8 @@ from fastapi import APIRouter
 from kubernetes_asyncio import client
 from kubernetes_asyncio.client.api_client import ApiClient
 
-from ...models.kubernetes import NamespaceResponse, NamespaceListResponse, NamespaceCreateRequest, CurrentNamespaceResponse
-from ...core.namespace import get_current_namespace, is_namespace_detection_enabled
+from ...models.kubernetes import NamespaceResponse, NamespaceListResponse, NamespaceCreateRequest, ContextResponse
+from ...core.namespace import get_current_context
 from .exceptions import handle_k8s_errors
 
 logger = logging.getLogger(__name__)
@@ -69,18 +69,22 @@ async def create_namespace(body: NamespaceCreateRequest) -> NamespaceResponse:
         )
 
 
-@router.get("/current-namespace", response_model=CurrentNamespaceResponse)
-async def get_current_namespace_endpoint() -> CurrentNamespaceResponse:
+@router.get("/context", response_model=ContextResponse)
+async def get_context_endpoint() -> ContextResponse:
     """
-    Get the current namespace detected from service account with mode information.
+    Get the current Kubernetes context information.
+    
+    Returns context following standard k8s patterns:
+    1. In-cluster service account (when running in pods)
+    2. Kubeconfig context (when running locally)  
+    3. Fallback to default
     
     Returns:
-        CurrentNamespaceResponse: The current namespace and whether single-namespace mode is enabled
+        ContextResponse: The current namespace and cluster information
     """
-    current_ns = get_current_namespace()
-    single_mode = is_namespace_detection_enabled()
+    current_context = get_current_context()
     
-    return CurrentNamespaceResponse(
-        name=current_ns,
-        single_namespace_mode=single_mode
+    return ContextResponse(
+        namespace=current_context["namespace"],
+        cluster=current_context["cluster"]
     )
