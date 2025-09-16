@@ -3,11 +3,10 @@
 This folder contains Terraform modules and top-level configurations intended to provision minimal, opinionated infrastructure on the three main cloud providers (AWS, GCP, Azure). The goal is to get a managed Kubernetes cluster up and running quickly so application teams can deploy and iterate. These modules are intentionally minimal — they provide a baseline environment and are not a drop-in secure production topology.
 
 Key points:
-- Providers supported: AWS, GCP, Azure
+- Providers supported: AWS, GCP
 - Each provider module provisions a managed Kubernetes control plane:
   - AWS: EKS
   - GCP: GKE
-  - Azure: AKS
 - Modules focus on fast bootstrap and essential resources (VPC/network, cluster, node pools, IAM/service accounts, and basic storage).
 - Users MUST extend and harden these modules to meet their organization’s security, compliance, and operational requirements.
 
@@ -15,12 +14,6 @@ Recommended usage
 - Use these modules as a starting point for development or proof-of-concept environments.
 - Do not treat the out-of-the-box configuration as production-ready.
 - Apply provider- and region-specific best practices (network isolation, RBAC, encryption, logging, monitoring, secrets management, least privilege).
-
-Folder structure
-- providers/
-  - aws/
-  - gcp/
-  - azure/ (placeholder)
 
 Security & compliance disclaimer
 These modules intentionally provide the bare minimum infrastructure to accelerate onboarding. It is the responsibility of the user or their security team to:
@@ -40,7 +33,7 @@ License
 ## Provider-specific details
 
 ### AWS prerequisites
-#### Local development:
+#### Local infrastructure development and provisioning:
 - AWS CLI installed and configured: https://docs.aws.amazon.com/cli/
 - Terraform (recommended >= 1.0)
 - AWS credentials with permissions to create VPC, EKS, EC2, IAM, ELB, S3 (or an appropriately-scoped IAM role) 
@@ -66,7 +59,7 @@ resource "aws_iam_role_policy_attachment" "github_oidc_role_policy_attachment" {
 }
 
 data "aws_iam_policy" "github_oidc_administrator_policy" {
-  name = "AdministratorAccess"
+  name = "AdministratorAccess" 
 }
 
 ```
@@ -75,9 +68,13 @@ Example of the policy you can find in `infrastructure/samples/github_oidc_assume
 
 - Following variables should be configured (via ENV vars or GitHub repository secrets):
 ```
-AWS_REGION
-AWS_ACCOUNT
 AWS_GH_OIDC_ROLE_ARN
+AWS_TF_STATE_BUCKET
+AWS_TF_STATE_KEY (optional)
+```
+Variables: 
+```
+AWS_REGION
 ```
 - (Placeholder) Any org-specific policies, SCPs or MFA requirements
 
@@ -85,7 +82,6 @@ AWS_GH_OIDC_ROLE_ARN
 #### Local development:
 - Google Cloud SDK (gcloud) installed and authenticated: https://cloud.google.com/sdk
 - Terraform (recommended >= 1.0)
-- GCP project with billing enabled
 - Service account with roles such as Kubernetes Engine Admin, Compute Admin, Service Account User, Storage Admin (adjust per needs)
 - Service account key or ADC available to Terraform
 #### Fork development:
@@ -131,17 +127,13 @@ Replace `ORG`, `REPO`,  with respective values, to further harden the policy, yo
 
 - Following variables should be configured (via ENV vars or GitHub repository secrets):
 ```
-GCP_REGION
 GCP_PROJECT_ID
 GCP_WORKLOAD_IDENTITY_PROVIDER
 GCP_SA_EMAIL
+GCP_TF_STATE_BUCKET
+```
+Variables: 
+```
+GCP_REGION
 ```
 - (Placeholder) Organization policies or IAM constraints
-
-### Azure prerequisites
-- Azure CLI installed and logged in: https://docs.microsoft.com/cli/azure
-- Terraform (recommended >= 1.0)
-- Azure subscription and target resource group
-- Service principal or managed identity with permissions to create VNet, AKS, RBAC roles, storage, etc.
-- Subscription and tenant IDs available to Terraform
-- (Placeholder) Any management group / policy requirements
